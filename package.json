@@ -11,16 +11,9 @@
         "Other"
     ],
     "activationEvents": [
-        // "onCommand:extension.sayHello"
         "onLanguage:maxscript"
     ],
     "main": "./out/src/extension",
-    "contributes": {
-        "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
-    },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
         "compile": "tsc -watch -p ./",
