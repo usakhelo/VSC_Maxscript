@@ -8,28 +8,29 @@ class GoDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         document: vscode.TextDocument, token: vscode.CancellationToken):
         vscode.SymbolInformation[] {
             let script_text = document.getText();
-            let funcReStr = /\b(function|fn|rollout|rcmenu|utility|plugin|button)\s+([a-zA-Z_0-9:]*)(\s+[a-zA-Z_0-9:]*)*\b/gi;
-            let structReStr = /\b(struct)\s+([a-zA-Z_0-9:]*)(\s+[a-zA-Z_0-9:]*)*\b/gi;
+            let funcReStr = /^\s*\b(function|fn|rollout|rcmenu|utility|plugin|button|on)\s+([a-zA-Z_0-9:]*)(\s+[a-zA-Z_0-9:]*)*\b/gim;
+            let structReStr = /^\s*\b(struct)\s+([a-zA-Z_0-9:]*)(\s+[a-zA-Z_0-9:]*)*\b/gim;
             
             let regex_result = [];
             let result: vscode.SymbolInformation[] = [];
-            let sym_str:String;
+            let sym_str:string;
             while ((regex_result = funcReStr.exec(script_text)) !== null) {
                 if (regex_result.length > 0) {
-                    if (regex_result[0].length > 0) {
-                        sym_str = regex_result[0];
+                    console.log(regex_result);
+                    if (regex_result[1].length > 0) {
+                        sym_str = regex_result[1] + " " +  regex_result[2];
                         let loc = new vscode.Location(new vscode.Uri(), document.positionAt(funcReStr.lastIndex - sym_str.length));
-                        let sym = new vscode.SymbolInformation(regex_result[0], vscode.SymbolKind.Function, '', loc);
+                        let sym = new vscode.SymbolInformation(sym_str, vscode.SymbolKind.Function, '', loc);
                         result.push(sym)
                     }
                 }
             }
             while ((regex_result = structReStr.exec(script_text)) !== null) {
                 if (regex_result.length > 0) {
-                    if (regex_result[0].length > 0) {
-                        sym_str = regex_result[0];
+                    if (regex_result[1].length > 0) {
+                        sym_str = regex_result[1] + " " +  regex_result[2];
                         let loc = new vscode.Location(new vscode.Uri(), document.positionAt(structReStr.lastIndex - sym_str.length));
-                        let sym = new vscode.SymbolInformation(regex_result[0], vscode.SymbolKind.Function, '', loc);
+                        let sym = new vscode.SymbolInformation(sym_str, vscode.SymbolKind.Function, '', loc);
                         result.push(sym)
                     }
                 }
