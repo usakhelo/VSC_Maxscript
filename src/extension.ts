@@ -6,18 +6,33 @@ class MaxscriptDefinitionProvider implements vscode.DefinitionProvider {
         return new Promise<vscode.Definition>((resolve, reject) => {
             let wordRange = document.getWordRangeAtPosition(position);
             let word = document.getText(wordRange);
-            let script_text = document.getText();
             let lineText = document.lineAt(position.line).text;
             console.log(word);
             if (!wordRange || lineText.startsWith('//') || lineText.startsWith('--') || word.match(/^\d+.?\d+$/) /*|| isPositionInString(document, position) || maxscriptKeywords.indexOf(word) > 0*/ ) {
                 resolve(null);
             }
-            //find first location of symbol in current file and in other file in workspace
             //should skip maxscript keywords, comments, string literals
             //should consider current scope somehow...
-            let index = script_text.search(word);
-            resolve(new vscode.Location(document.uri, document.positionAt(index)));
-        }); 
+
+            //find definition in the array of document symbols
+            let result = vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', document.uri);
+            result.then((symbols:Array<vscode.SymbolInformation>) => {
+                  let sym_location: vscode.Location;
+                  let test = symbols.find((sym_inf) => {
+                      if (sym_inf.name == word){
+                          sym_location = sym_inf.location;
+                          return true;
+                      }
+                      return false;
+                  });
+                  if (test)
+                    resolve(sym_location);
+                  else
+                    resolve(null);
+                }, (reason) => {
+                      console.log(reason); // Error!
+                    });
+        });
     }
 }
 
@@ -36,7 +51,7 @@ class MaxscriptDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
                 if (regex_result.length > 0) {
                     // console.log(regex_result);
                     if (regex_result[1].length > 0) {
-                        sym_str = regex_result[1] + " " +  regex_result[2];
+                        sym_str = regex_result[2];
                         let loc = new vscode.Location(document.uri, document.positionAt(funcReStr.lastIndex - sym_str.length));
                         let sym = new vscode.SymbolInformation(sym_str, vscode.SymbolKind.Function, '', loc);
                         result.push(sym)
@@ -46,9 +61,9 @@ class MaxscriptDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
             while ((regex_result = structReStr.exec(script_text)) !== null) {
                 if (regex_result.length > 0) {
                     if (regex_result[1].length > 0) {
-                        sym_str = regex_result[1] + " " +  regex_result[2];
+                        sym_str = regex_result[2];
                         let loc = new vscode.Location(document.uri, document.positionAt(structReStr.lastIndex - sym_str.length));
-                        let sym = new vscode.SymbolInformation(sym_str, vscode.SymbolKind.Function, '', loc);
+                        let sym = new vscode.SymbolInformation(sym_str, vscode.SymbolKind.Class, '', loc);
                         result.push(sym)
                     }
                 }
