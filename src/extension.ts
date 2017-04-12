@@ -4,16 +4,19 @@ import * as vscode from 'vscode';
 class MaxscriptDefinitionProvider implements vscode.DefinitionProvider {
     public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Definition> {
         return new Promise<vscode.Definition>((resolve, reject) => {
-        let range = document.getWordRangeAtPosition(position);
-        let symbol = document.getText(range);
-        console.log(range);
-        console.log(symbol);
-        //probably should find first location of symbol in current file and in other file in workspace
-        //should skip maxscript keywords, comments, string literals
-        //     if (!wordRange || lineText.startsWith('//') || isPositionInString(document, position) || word.match(/^\d+.?\d+$/) || goKeywords.indexOf(word) > 0) {
-        // return Promise.resolve(null);
-        //workspace.findFiles(ui5tsglobal.core.CreateRelativePath(tag[1]) + controllerFileEx, undefined);
-        new vscode.Location(document.uri, new vscode.Position(0, 0));
+            let wordRange = document.getWordRangeAtPosition(position);
+            let word = document.getText(wordRange);
+            let script_text = document.getText();
+            let lineText = document.lineAt(position.line).text;
+            console.log(word);
+            if (!wordRange || lineText.startsWith('//') || lineText.startsWith('--') || word.match(/^\d+.?\d+$/) /*|| isPositionInString(document, position) || maxscriptKeywords.indexOf(word) > 0*/ ) {
+                resolve(null);
+            }
+            //find first location of symbol in current file and in other file in workspace
+            //should skip maxscript keywords, comments, string literals
+            //should consider current scope somehow...
+            let index = script_text.search(word);
+            resolve(new vscode.Location(document.uri, document.positionAt(index)));
         }); 
     }
 }
